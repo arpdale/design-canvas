@@ -1,6 +1,7 @@
 import type { Catalog, CatalogEntry } from './types'
 import { tier1 } from './entries/tier1'
 import { tier2 } from './entries/tier2'
+import { layoutPrimitives } from './entries/layout'
 
 export type {
   Catalog,
@@ -12,9 +13,10 @@ export type {
   EnumProp,
   BooleanProp,
   SlotSpec,
+  StructuralConfig,
 } from './types'
 
-const allEntries: CatalogEntry[] = [...tier1, ...tier2]
+const allEntries: CatalogEntry[] = [...layoutPrimitives, ...tier1, ...tier2]
 
 /**
  * Indexed catalog, keyed by `name` (matches the DS export name).

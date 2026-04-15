@@ -93,6 +93,52 @@ describe('exportComposition — external compile', () => {
     expect(proc.status).toBe(0)
   }, 30_000)
 
+  it('a Row with two Buttons compiles (layout primitive gate)', async () => {
+    let c = createComposition('CancelSubmit')
+    c = insertNode(
+      c,
+      null,
+      0,
+      createNode({
+        type: 'Row',
+        props: { gap: 'md', align: 'center' },
+        children: [
+          { type: 'Button', props: { children: 'Cancel', variant: 'outline' } },
+          { type: 'Button', props: { children: 'Submit', variant: 'default' } },
+        ],
+      })
+    )
+    const { result, proc } = await compile(c)
+    if (proc.status !== 0) {
+      console.error(result.source)
+      console.error(proc.stderr)
+    }
+    expect(proc.status).toBe(0)
+  }, 30_000)
+
+  it('a ButtonGroup with two Buttons compiles (DS grouping primitive)', async () => {
+    let c = createComposition('ButtonsGrouped')
+    c = insertNode(
+      c,
+      null,
+      0,
+      createNode({
+        type: 'ButtonGroup',
+        props: { orientation: 'horizontal' },
+        children: [
+          { type: 'Button', props: { children: 'Back', variant: 'outline' } },
+          { type: 'Button', props: { children: 'Next', variant: 'default' } },
+        ],
+      })
+    )
+    const { result, proc } = await compile(c)
+    if (proc.status !== 0) {
+      console.error(result.source)
+      console.error(proc.stderr)
+    }
+    expect(proc.status).toBe(0)
+  }, 30_000)
+
   it('a simple Button composition compiles', async () => {
     let c = createComposition('Hello')
     c = insertNode(

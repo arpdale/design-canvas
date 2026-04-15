@@ -454,6 +454,26 @@ export const tier2: CatalogEntry[] = [
     defaultProps: { placeholder: '' },
     propSchema: [{ name: 'placeholder', kind: 'string' }],
   },
+  // --- ButtonGroup ---
+  {
+    name: 'ButtonGroup',
+    category: 'layout',
+    tier: 2,
+    acceptsChildren: true,
+    defaultProps: { orientation: 'horizontal' },
+    propSchema: [
+      {
+        name: 'orientation',
+        kind: 'enum',
+        values: ['horizontal', 'vertical'],
+      },
+    ],
+    defaultChildren: [
+      { type: 'Button', props: { children: 'Cancel', variant: 'outline' } },
+      { type: 'Button', props: { children: 'Submit', variant: 'default' } },
+    ],
+  },
+
   {
     name: 'InputGroupText',
     category: 'input',

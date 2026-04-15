@@ -116,6 +116,22 @@ Each milestone = one branch = one PR. Merge to `main` only when green and the mi
 **DoD:** Export login composition; drop the file into a fresh React app with `@david-richard/ds-blossom` installed; it compiles and renders identically.
 **Risk:** Prop serialization edge cases (enum strings vs raw values; booleans as attribute flags). **Mitigation:** unit tests per prop kind.
 
+### M9.5 · Layout primitives (Row, Stack, ButtonGroup)
+`feature/m9-5-layout-primitives` — Side-by-side composition. Stacking children vertically is the natural behavior of container divs; horizontal arrangement needs an explicit primitive.
+
+- **Row** and **Stack** — our own layout primitives. Emit as `<div className="flex gap-3">…</div>` and `<div className="flex flex-col gap-3">…</div>`. Not DS components; structural markup the designer assembles between DS components. `gap` prop is an enum (sm/md/lg). This matches the mental model every designer has from Figma / Subframe / Framer.
+- **ButtonGroup** — DS primitive, already exported by `@david-richard/ds-blossom`. Add as a catalog Tier 2 entry with seeded Button children. Idiomatic DS code for grouped buttons (shared border, keyboard nav).
+
+Design rationale:
+- B + A from the Approach pass. Row/Stack cover the general case; ButtonGroup surfaces the DS's own opinion about button grouping.
+- Option C (layout prop on existing containers) rejected — muddies DS semantics, produces `className="flex"` smells on DS components in the export.
+
+**DoD:** E2E — drop Row into CardContent, drop two Buttons into Row, they render side-by-side. Export contains `<div className="flex gap-3">` wrapping the Buttons.
+
+**Risk:** Low. Pure additions. The emitter already handles container components; Row/Stack plug into the same path.
+
+---
+
 ### M10 · End-to-end demo dress rehearsal
 **Branch:** `feature/m10-demo-polish`
 **Goal:** Run the scripted login demo start-to-finish; fix whatever feels wrong.

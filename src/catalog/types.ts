@@ -121,6 +121,21 @@ export interface CatalogEntry {
     props?: Record<string, JsonValue>
     children?: CatalogEntry['defaultChildren']
   }>
+  /**
+   * Structural entries are emitted as plain HTML (e.g. a div with Tailwind
+   * classes), not imported from the DS. Used for layout primitives like
+   * Row and Stack. See technical-approach.md — layout primitives are
+   * intentionally not DS components; they're markup the designer assembles
+   * between DS components.
+   */
+  structural?: StructuralConfig
+}
+
+export interface StructuralConfig {
+  /** HTML tag to render / emit. */
+  tag: 'div' | 'span'
+  /** Computes the className string from the current props. */
+  classes: (props: Record<string, JsonValue>) => string
 }
 
 export type Catalog = Record<string, CatalogEntry>
