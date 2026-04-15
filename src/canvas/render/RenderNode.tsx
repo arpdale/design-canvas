@@ -19,9 +19,7 @@ interface RenderNodeProps {
 
 export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
   const entry = getEntry(node.type)
-  const Component = getComponent(node.type)
 
-  // Make every rendered node a drag source (for reorder/move).
   const {
     setNodeRef: setDragRef,
     listeners,
@@ -32,22 +30,18 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     data: { kind: 'node', id: node.id, type: node.type },
   })
 
-  // Compound containers and generic-children containers are drop targets.
   const acceptsDrop = entry?.acceptsChildren === true
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: dropTargetId({ kind: 'container', parentId: node.id }),
     disabled: !acceptsDrop,
   })
 
-  // Merge drag + drop refs onto the same wrapper.
   const setRef = (el: HTMLDivElement | null) => {
     setDragRef(el)
     setDropRef(el)
   }
 
   const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    // Let dnd-kit's listeners handle drag activation; only block the native
-    // default (focus theft, text selection).
     e.preventDefault()
   }
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -65,7 +59,8 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     .filter(Boolean)
     .join(' ')
 
-  if (!entry || !Component) {
+  // Unknown component — amber tile.
+  if (!entry) {
     return (
       <div
         data-testid={`render-unknown-${node.id}`}
@@ -78,6 +73,7 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     )
   }
 
+  // Render children.
   let renderedChildren: ReactNode = null
   if (entry.textChild) {
     renderedChildren = (node.props.children as string | undefined) ?? ''
@@ -90,6 +86,47 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
         onSelect={onSelect}
       />
     ))
+  }
+
+  // Structural entries (Row, Stack): render as plain HTML with computed
+  // classes. Not DS components. Empty ones get a min drop-target size in
+  // the canvas only — the export keeps the classes clean.
+  if (entry.structural) {
+    const { tag, classes } = entry.structural
+    const canvasOnly = node.children.length === 0 ? 'min-h-10 min-w-24' : ''
+    const composed = [classes(node.props), canvasOnly, wrapperClass]
+      .filter(Boolean)
+      .join(' ')
+    return createElement(
+      tag,
+      {
+        ref: setRef,
+        'data-testid': `render-node-${node.id}`,
+        'data-node-id': node.id,
+        'data-node-type': node.type,
+        className: composed,
+        onClick: handleClick,
+        onPointerDown: handlePointerDown,
+        ...listeners,
+        ...attributes,
+      },
+      renderedChildren
+    )
+  }
+
+  // DS-backed entries.
+  const Component = getComponent(node.type)
+  if (!Component) {
+    return (
+      <div
+        data-testid={`render-unknown-${node.id}`}
+        data-node-id={node.id}
+        className="inline-flex items-center gap-2 px-2 py-1 rounded border border-amber-300 bg-amber-50 text-xs text-amber-900"
+      >
+        <span className="font-mono">{node.type}</span>
+        <span className="text-amber-700">unknown component</span>
+      </div>
+    )
   }
 
   const { children: _dropChildren, ...propsForDS } = node.props

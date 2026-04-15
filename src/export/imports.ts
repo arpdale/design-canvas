@@ -3,14 +3,15 @@ import { walk } from '../composition'
 import { getEntry } from '../catalog'
 
 /**
- * Walks the tree collecting every component type used. Filters to names
- * that exist in the catalog (unknown types are elided from the import,
- * and emit.ts renders them as JSX comments so the export still compiles).
+ * Walks the tree collecting every component type used. Only DS-backed
+ * entries contribute to the import line; structural entries (Row, Stack)
+ * emit as divs and don't need importing. Unknown types are elided.
  */
 export function collectUsedComponents(roots: CompositionNode[]): string[] {
   const used = new Set<string>()
   walk(roots, (node) => {
-    if (getEntry(node.type)) used.add(node.type)
+    const entry = getEntry(node.type)
+    if (entry && !entry.structural) used.add(node.type)
   })
   return Array.from(used).sort()
 }
