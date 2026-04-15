@@ -4,7 +4,7 @@ import { useCanvas } from './state/canvasStoreContext'
 import { PropField } from './inspector/PropField'
 
 export function InspectorPanel() {
-  const { composition, selectedId, updateProp, remove } = useCanvas()
+  const { active, selectedId, updateProp, remove } = useCanvas()
 
   if (!selectedId) {
     return (
@@ -19,7 +19,7 @@ export function InspectorPanel() {
     )
   }
 
-  const node = findNode(composition.roots, selectedId)
+  const node = active ? findNode(active.roots, selectedId) : undefined
   const entry = node ? getEntry(node.type) : undefined
 
   if (!node || !entry) {

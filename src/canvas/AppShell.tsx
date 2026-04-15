@@ -10,6 +10,14 @@ import { useCanvas } from './state/canvasStoreContext'
 export function AppShell() {
   return (
     <CanvasStoreProvider>
+      <AppShellContent />
+    </CanvasStoreProvider>
+  )
+}
+
+function AppShellContent() {
+  return (
+    <>
       <CanvasDndContext>
         <KeyboardShortcuts />
         <div
@@ -39,7 +47,7 @@ export function AppShell() {
           </div>
         </div>
       </CanvasDndContext>
-    </CanvasStoreProvider>
+    </>
   )
 }
 
