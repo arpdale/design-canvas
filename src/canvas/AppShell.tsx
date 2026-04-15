@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ComponentPanel } from './ComponentPanel'
 import { CanvasSurface } from './CanvasSurface'
 import { InspectorPanel } from './InspectorPanel'
@@ -6,6 +6,7 @@ import { TopBar } from './TopBar'
 import { CanvasDndContext } from './dnd/CanvasDndContext'
 import { CanvasStoreProvider } from './state/CanvasStoreProvider'
 import { useCanvas } from './state/canvasStoreContext'
+import { ExportDialog } from './ExportDialog'
 
 export function AppShell() {
   return (
@@ -16,6 +17,7 @@ export function AppShell() {
 }
 
 function AppShellContent() {
+  const [exportOpen, setExportOpen] = useState(false)
   return (
     <>
       <CanvasDndContext>
@@ -24,7 +26,7 @@ function AppShellContent() {
           data-testid="app-shell"
           className="flex flex-col h-full w-full bg-neutral-50"
         >
-          <TopBar />
+          <TopBar onExport={() => setExportOpen(true)} />
           <div className="flex flex-1 min-h-0">
             <aside
               data-testid="panel-components"
@@ -47,6 +49,7 @@ function AppShellContent() {
           </div>
         </div>
       </CanvasDndContext>
+      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} />
     </>
   )
 }
@@ -57,8 +60,6 @@ function KeyboardShortcuts() {
     function handle(e: KeyboardEvent) {
       if (e.key !== 'Backspace' && e.key !== 'Delete') return
       if (!selectedId) return
-      // Don't hijack when focus is in a real input/textarea (unused today
-      // given edit-mode interception, but belt-and-suspenders for later).
       const tag = (e.target as HTMLElement | null)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
       remove(selectedId)

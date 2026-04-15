@@ -7,7 +7,7 @@ import { STORAGE_KEY } from '../persistence'
 function renderTopBar() {
   return render(
     <CanvasStoreProvider options={{ skipLoad: true, skipSave: true }}>
-      <TopBar />
+      <TopBar onExport={() => {}} />
     </CanvasStoreProvider>
   )
 }
