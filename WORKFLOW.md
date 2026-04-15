@@ -105,6 +105,16 @@ Permission requests must be **batched into a single message** and include:
 
 ---
 
+## Phase Output Review Rule
+
+Artifacts produced by phases meant for user review — Discovery Summaries, Approach docs, Plans, or any substantive review document — must be **rendered inline in the chat window**, not only saved to a file on disk.
+
+Saving to a file (e.g., under `docs/planning/`) is fine and preferred as the durable artifact. But the doc must also be rendered inline for review. Summaries with links are not acceptable — the full content must be visible in the chat so feedback can happen without context-switching.
+
+After revisions are accepted, the on-disk file is the canonical artifact and the inline rendering can be omitted from subsequent turns.
+
+---
+
 ## Communication Rules
 
 - Do not ask questions unless blocked
