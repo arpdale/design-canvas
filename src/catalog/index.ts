@@ -40,3 +40,5 @@ export function panelEntries(): CatalogEntry[] {
 export function getEntry(name: string): CatalogEntry | undefined {
   return catalog[name]
 }
+
+export { materialize } from './materialize'

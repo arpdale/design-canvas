@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import {
   createComposition,
   insertNode,
+  moveNode,
   removeNode,
   type Composition,
   type CompositionNode,
@@ -22,7 +23,12 @@ export interface CanvasState {
   selectedId: NodeId | null
   setComposition: (c: Composition) => void
   setSelectedId: (id: NodeId | null) => void
-  insertRoot: (node: CompositionNode) => void
+
+  /** Insert a new subtree (from the panel) at the given location. */
+  insertAt: (parentId: NodeId | null, index: number, node: CompositionNode) => void
+  /** Move an existing node to a new parent/index. */
+  moveTo: (id: NodeId, parentId: NodeId | null, index: number) => void
+  /** Remove a node from the tree. Clears selection if the node was selected. */
   remove: (id: NodeId) => void
 }
 
@@ -32,17 +38,24 @@ export function useCanvasStore(initial?: Composition): CanvasState {
   )
   const [selectedId, setSelectedId] = useState<NodeId | null>(null)
 
-  const insertRoot = useCallback((node: CompositionNode) => {
-    setComposition((c) => insertNode(c, null, c.roots.length, node))
-  }, [])
-
-  const remove = useCallback(
-    (id: NodeId) => {
-      setComposition((c) => removeNode(c, id))
-      setSelectedId((prev) => (prev === id ? null : prev))
+  const insertAt = useCallback(
+    (parentId: NodeId | null, index: number, node: CompositionNode) => {
+      setComposition((c) => insertNode(c, parentId, index, node))
     },
     []
   )
+
+  const moveTo = useCallback(
+    (id: NodeId, parentId: NodeId | null, index: number) => {
+      setComposition((c) => moveNode(c, id, parentId, index))
+    },
+    []
+  )
+
+  const remove = useCallback((id: NodeId) => {
+    setComposition((c) => removeNode(c, id))
+    setSelectedId((prev) => (prev === id ? null : prev))
+  }, [])
 
   return useMemo(
     () => ({
@@ -50,9 +63,10 @@ export function useCanvasStore(initial?: Composition): CanvasState {
       selectedId,
       setComposition,
       setSelectedId,
-      insertRoot,
+      insertAt,
+      moveTo,
       remove,
     }),
-    [composition, selectedId, insertRoot, remove]
+    [composition, selectedId, insertAt, moveTo, remove]
   )
 }

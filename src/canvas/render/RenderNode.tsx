@@ -1,8 +1,15 @@
-import { createElement, type PointerEvent, type MouseEvent } from 'react'
+import {
+  createElement,
+  type PointerEvent,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { CompositionNode } from '../../composition'
 import { getEntry } from '../../catalog'
 import { getComponent } from './registry'
 import { ComponentErrorBoundary } from './ComponentErrorBoundary'
+import { dropTargetId } from '../dnd/dropTarget'
 
 interface RenderNodeProps {
   node: CompositionNode
@@ -10,22 +17,37 @@ interface RenderNodeProps {
   onSelect: (id: string) => void
 }
 
-/**
- * Renders a single composition node as a live DS component, wrapped in:
- *   - An error boundary (per-component, per technical-approach.md)
- *   - An edit-mode selection wrapper that intercepts pointer events so
- *     buttons don't fire, inputs don't steal focus, links don't navigate
- *
- * Pure presentation — delegates selection and tree state to its caller.
- * Never imports from src/composition/ mutation APIs; state lives above.
- */
 export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
   const entry = getEntry(node.type)
   const Component = getComponent(node.type)
 
-  // Edit-mode event interception: swallow native pointer behavior so the
-  // canvas is a selection surface, not a live interactive UI.
+  // Make every rendered node a drag source (for reorder/move).
+  const {
+    setNodeRef: setDragRef,
+    listeners,
+    attributes,
+    isDragging,
+  } = useDraggable({
+    id: `node:${node.id}`,
+    data: { kind: 'node', id: node.id, type: node.type },
+  })
+
+  // Compound containers and generic-children containers are drop targets.
+  const acceptsDrop = entry?.acceptsChildren === true
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: dropTargetId({ kind: 'container', parentId: node.id }),
+    disabled: !acceptsDrop,
+  })
+
+  // Merge drag + drop refs onto the same wrapper.
+  const setRef = (el: HTMLDivElement | null) => {
+    setDragRef(el)
+    setDropRef(el)
+  }
+
   const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    // Let dnd-kit's listeners handle drag activation; only block the native
+    // default (focus theft, text selection).
     e.preventDefault()
   }
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -37,6 +59,8 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
   const wrapperClass = [
     'relative inline-block max-w-full',
     isSelected ? 'outline outline-2 outline-offset-2 outline-blue-500' : '',
+    isOver && acceptsDrop ? 'ring-2 ring-blue-300 bg-blue-50/40' : '',
+    isDragging ? 'opacity-40' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -54,9 +78,7 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     )
   }
 
-  // Render children. Text-child components use props.children as a string;
-  // container components render their children as nested RenderNodes.
-  let renderedChildren: React.ReactNode = null
+  let renderedChildren: ReactNode = null
   if (entry.textChild) {
     renderedChildren = (node.props.children as string | undefined) ?? ''
   } else if (node.children.length > 0) {
@@ -70,20 +92,20 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     ))
   }
 
-  // Build the props we actually pass to the DS component. For text-child
-  // components, `children` is synthesized from the string prop, so we
-  // must drop it from the spread.
   const { children: _dropChildren, ...propsForDS } = node.props
   void _dropChildren
 
   return (
     <div
+      ref={setRef}
       data-testid={`render-node-${node.id}`}
       data-node-id={node.id}
       data-node-type={node.type}
       className={wrapperClass}
       onClick={handleClick}
       onPointerDown={handlePointerDown}
+      {...listeners}
+      {...attributes}
     >
       <ComponentErrorBoundary nodeId={node.id} nodeType={node.type}>
         {createElement(Component, propsForDS, renderedChildren)}

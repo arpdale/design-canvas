@@ -2,13 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { ComponentPanel } from './ComponentPanel'
 import { CanvasDndContext } from './dnd/CanvasDndContext'
+import { CanvasStoreProvider } from './state/CanvasStoreProvider'
 import { panelEntries } from '../catalog'
 
 function renderPanel() {
   return render(
-    <CanvasDndContext>
-      <ComponentPanel />
-    </CanvasDndContext>
+    <CanvasStoreProvider>
+      <CanvasDndContext>
+        <ComponentPanel />
+      </CanvasDndContext>
+    </CanvasStoreProvider>
   )
 }
 
@@ -25,7 +28,6 @@ describe('ComponentPanel', () => {
 
   it('never renders hidden subcomponents as panel items', () => {
     renderPanel()
-    // CardHeader is hidden — should not appear as a draggable.
     expect(
       screen.queryByTestId('panel-item-CardHeader')
     ).not.toBeInTheDocument()
@@ -33,7 +35,6 @@ describe('ComponentPanel', () => {
 
   it('groups items by category', () => {
     renderPanel()
-    // Layout contains Card and Separator; both should be under layout group.
     const layoutGroup = screen.getByTestId('component-panel-group-layout')
     expect(within(layoutGroup).getByTestId('panel-item-Card')).toBeInTheDocument()
     expect(
