@@ -10,6 +10,7 @@ import {
   insertNode,
   type Composition,
 } from '../composition'
+import { CURRENT_SCHEMA_VERSION } from '../persistence'
 
 /**
  * Harness that seeds a composition and optionally selects a node.
@@ -24,7 +25,17 @@ function Harness({
   selectId?: string
 }) {
   return (
-    <CanvasStoreProvider initial={initial}>
+    <CanvasStoreProvider
+      options={{
+        skipLoad: true,
+        skipSave: true,
+        initialLibrary: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          compositions: [initial],
+          activeId: initial.id,
+        },
+      }}
+    >
       <Selector selectId={selectId} />
       <InspectorPanel />
     </CanvasStoreProvider>

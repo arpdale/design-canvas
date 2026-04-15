@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
-import { useCanvasStore } from './canvasStore'
-import type { Composition } from '../../composition'
+import { useCanvasStore, type UseCanvasStoreOptions } from './canvasStore'
 import { CanvasStoreContext } from './canvasStoreContext'
 
 export function CanvasStoreProvider({
-  initial,
+  options,
   children,
 }: {
-  initial?: Composition
+  /** Test-only options; not passed in production. */
+  options?: UseCanvasStoreOptions
   children: ReactNode
 }) {
-  const store = useCanvasStore(initial)
+  const store = useCanvasStore(options)
   return (
     <CanvasStoreContext.Provider value={store}>
       {children}

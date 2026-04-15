@@ -4,8 +4,8 @@ import { useCanvas } from './state/canvasStoreContext'
 import { dropTargetId } from './dnd/dropTarget'
 
 export function CanvasSurface() {
-  const { composition, selectedId, setSelectedId } = useCanvas()
-  const { roots } = composition
+  const { active, selectedId, setSelectedId } = useCanvas()
+  const roots = active?.roots ?? []
 
   const { setNodeRef, isOver } = useDroppable({
     id: dropTargetId({ kind: 'root' }),

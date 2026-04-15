@@ -34,8 +34,9 @@ type ActiveDrag =
  *   `container:<nodeId>`   → insert as last child of that container
  */
 export function CanvasDndContext({ children }: CanvasDndContextProps) {
-  const { composition, insertAt, moveTo, setSelectedId } = useCanvas()
-  const [active, setActive] = useState<ActiveDrag>(null)
+  const { active: activeComposition, insertAt, moveTo, setSelectedId } =
+    useCanvas()
+  const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
@@ -46,13 +47,13 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
       | { kind: 'panel-item'; type: string }
       | { kind: 'node'; id: string; type: string }
       | undefined
-    setActive(data ?? null)
+    setActiveDrag(data ?? null)
   }
 
-  const onDragCancel = () => setActive(null)
+  const onDragCancel = () => setActiveDrag(null)
 
   const onDragEnd = (e: DragEndEvent) => {
-    setActive(null)
+    setActiveDrag(null)
     const overId = e.over?.id
     const data = e.active.data.current as
       | { kind: 'panel-item'; type: string }
@@ -67,7 +68,7 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
       const node = materialize(data.type)
       if (!node) return
       if (target.kind === 'root') {
-        insertAt(null, composition.roots.length, node)
+        insertAt(null, activeComposition?.roots.length ?? 0, node)
       } else {
         // appending to a container
         insertAt(target.parentId, Number.MAX_SAFE_INTEGER, node)
@@ -75,7 +76,7 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
       setSelectedId(node.id)
     } else if (data.kind === 'node') {
       if (target.kind === 'root') {
-        moveTo(data.id, null, composition.roots.length)
+        moveTo(data.id, null, activeComposition?.roots.length ?? 0)
       } else {
         // reject moving into self (composition module also rejects cycles)
         if (target.parentId === data.id) return
@@ -95,7 +96,9 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
       {typeof document !== 'undefined' &&
         createPortal(
           <DragOverlay>
-            {active ? <DragPreview label={describeDrag(active)} /> : null}
+            {activeDrag ? (
+              <DragPreview label={describeDrag(activeDrag)} />
+            ) : null}
           </DragOverlay>,
           document.body
         )}
