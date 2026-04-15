@@ -20,16 +20,19 @@ export function CanvasSurface() {
         data-testid="canvas-empty"
         onClick={clearSelectionOnBackground}
         className={[
-          'mx-auto max-w-3xl min-h-full rounded-lg border-2 border-dashed flex items-center justify-center text-neutral-400 transition-colors',
+          'mx-auto max-w-3xl min-h-full rounded-lg border-2 border-dashed flex items-center justify-center transition-colors',
           isOver
-            ? 'border-blue-400 bg-blue-50 text-blue-600'
-            : 'border-neutral-300 bg-white',
+            ? 'border-blue-400 bg-blue-50 text-blue-700'
+            : 'border-neutral-300 bg-white text-neutral-400',
         ].join(' ')}
       >
-        <div className="text-center p-12">
-          <p className="text-sm">Canvas</p>
-          <p className="text-xs mt-2">
-            Drag a component from the left to start composing.
+        <div className="text-center p-12 max-w-sm">
+          <p className="text-sm font-medium">
+            {isOver ? 'Drop to place here' : 'Your canvas is empty'}
+          </p>
+          <p className="text-xs mt-2 leading-relaxed">
+            Drag a component from the left panel to start composing. Nest by
+            dropping onto a container.
           </p>
         </div>
       </div>
@@ -42,7 +45,7 @@ export function CanvasSurface() {
       data-testid="canvas-surface"
       onClick={clearSelectionOnBackground}
       className={[
-        'mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col gap-6 transition-colors',
+        'mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col gap-6 transition-shadow',
         isOver ? 'ring-2 ring-blue-300' : '',
       ].join(' ')}
     >

@@ -72,9 +72,15 @@ export function ExportDialog({ open, onClose }: ExportDialogProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center gap-3 px-5 py-3 border-b border-neutral-200">
-          <h2 className="text-sm font-semibold text-neutral-900">
-            Export{result ? ` — ${result.filename}` : ''}
-          </h2>
+          <h2 className="text-sm font-semibold text-neutral-900">Export</h2>
+          {result ? (
+            <span
+              data-testid="export-filename"
+              className="text-xs font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-700"
+            >
+              {result.filename}
+            </span>
+          ) : null}
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
@@ -111,7 +117,7 @@ export function ExportDialog({ open, onClose }: ExportDialogProps) {
           ) : result ? (
             <pre
               data-testid="export-source"
-              className="p-5 text-xs font-mono text-neutral-800 whitespace-pre-wrap break-words"
+              className="p-5 text-[13px] leading-relaxed font-mono text-neutral-800 whitespace-pre-wrap break-words bg-neutral-50"
             >
               {result.source}
             </pre>

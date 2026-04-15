@@ -1,7 +1,16 @@
 import { findNode } from '../composition'
-import { getEntry } from '../catalog'
+import { getEntry, type CatalogCategory } from '../catalog'
 import { useCanvas } from './state/canvasStoreContext'
 import { PropField } from './inspector/PropField'
+
+const CATEGORY_LABEL: Record<CatalogCategory, string> = {
+  input: 'Input',
+  layout: 'Layout',
+  display: 'Display',
+  feedback: 'Feedback',
+  nav: 'Navigation',
+  typography: 'Typography',
+}
 
 export function InspectorPanel() {
   const { active, selectedId, updateProp, remove } = useCanvas()
@@ -38,13 +47,21 @@ export function InspectorPanel() {
   return (
     <div className="p-4 flex flex-col gap-4" data-testid="inspector-panel">
       <div>
-        <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+        <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
           Inspector
         </h2>
-        <p className="text-sm font-medium text-neutral-900">
-          {entry.displayName ?? entry.name}
-        </p>
-        <p className="text-xs text-neutral-400 font-mono">{node.id}</p>
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-base font-semibold text-neutral-900">
+            {entry.displayName ?? entry.name}
+          </p>
+          <span
+            data-testid="inspector-category"
+            className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600"
+          >
+            {CATEGORY_LABEL[entry.category]}
+          </span>
+        </div>
+        <p className="text-[11px] text-neutral-400 font-mono">{node.id}</p>
       </div>
 
       {entry.propSchema.length === 0 ? (
