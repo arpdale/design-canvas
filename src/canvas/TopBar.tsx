@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useCanvas } from './state/canvasStoreContext'
 
-export function TopBar() {
+interface TopBarProps {
+  onExport: () => void
+}
+
+export function TopBar({ onExport }: TopBarProps) {
   const {
     active,
     compositions,
@@ -58,6 +62,16 @@ export function TopBar() {
           className="text-sm px-2 py-1 rounded-md border border-neutral-200 hover:bg-neutral-50 focus:outline-none focus:border-neutral-400"
         >
           New
+        </button>
+
+        <button
+          type="button"
+          data-testid="export-open"
+          onClick={onExport}
+          disabled={!active || active.roots.length === 0}
+          className="text-sm px-2 py-1 rounded-md bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-neutral-400"
+        >
+          Export
         </button>
 
         {active && compositions.length > 1 ? (
