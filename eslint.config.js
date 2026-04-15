@@ -20,4 +20,30 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  // Load-bearing architectural constraint (technical-approach.md §5):
+  // src/composition/ must remain free of React so composition state stays
+  // portable, JSON-serializable, and extractable to a Model C document
+  // renderer later.
+  {
+    files: ['src/composition/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-dom', 'react/*', 'react-dom/*'],
+              message:
+                'src/composition/ must be React-free. Composition state is pure data — see docs/planning/technical-approach.md §5.',
+            },
+            {
+              group: ['**/canvas/**'],
+              message:
+                'src/composition/ must not depend on the canvas renderer.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ])
