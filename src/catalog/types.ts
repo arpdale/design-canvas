@@ -129,6 +129,13 @@ export interface CatalogEntry {
    * between DS components.
    */
   structural?: StructuralConfig
+  /**
+   * Hint for the canvas's reorder indicators: are this entry's children
+   * arranged horizontally or vertically? Affects only the orientation of
+   * the insertion bar between siblings. Defaults to 'column' for normal
+   * containers and 'row' only for Row-style flex containers.
+   */
+  childFlow?: 'row' | 'column'
 }
 
 export interface StructuralConfig {

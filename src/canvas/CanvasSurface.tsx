@@ -1,5 +1,7 @@
+import { Fragment } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { RenderNode } from './render/RenderNode'
+import { GapDropZone } from './render/GapDropZone'
 import { useCanvas } from './state/canvasStoreContext'
 import { dropTargetId } from './dnd/dropTarget'
 
@@ -44,18 +46,18 @@ export function CanvasSurface() {
       ref={setNodeRef}
       data-testid="canvas-surface"
       onClick={clearSelectionOnBackground}
-      className={[
-        'mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col gap-6 transition-shadow',
-        isOver ? 'ring-2 ring-blue-300' : '',
-      ].join(' ')}
+      className="mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col"
     >
-      {roots.map((node) => (
-        <RenderNode
-          key={node.id}
-          node={node}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
+      <GapDropZone parentId={null} index={0} flow="column" />
+      {roots.map((node, i) => (
+        <Fragment key={node.id}>
+          <RenderNode
+            node={node}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
+          <GapDropZone parentId={null} index={i + 1} flow="column" />
+        </Fragment>
       ))}
     </div>
   )

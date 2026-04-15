@@ -460,6 +460,7 @@ export const tier2: CatalogEntry[] = [
     category: 'layout',
     tier: 2,
     acceptsChildren: true,
+    childFlow: 'row',
     defaultProps: { orientation: 'horizontal' },
     propSchema: [
       {

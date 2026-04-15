@@ -10,6 +10,7 @@ import { getEntry } from '../../catalog'
 import { getComponent } from './registry'
 import { ComponentErrorBoundary } from './ComponentErrorBoundary'
 import { dropTargetId } from '../dnd/dropTarget'
+import { GapDropZone } from './GapDropZone'
 
 interface RenderNodeProps {
   node: CompositionNode
@@ -73,19 +74,41 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     )
   }
 
-  // Render children.
+  // Render children — interleave GapDropZones so users can drop between
+  // siblings (reorder / insert). Gaps are only visible during a drag.
+  const childFlow = entry.childFlow ?? 'column'
   let renderedChildren: ReactNode = null
   if (entry.textChild) {
     renderedChildren = (node.props.children as string | undefined) ?? ''
   } else if (node.children.length > 0) {
-    renderedChildren = node.children.map((child) => (
-      <RenderNode
-        key={child.id}
-        node={child}
-        selectedId={selectedId}
-        onSelect={onSelect}
+    const interleaved: ReactNode[] = []
+    for (let i = 0; i < node.children.length; i++) {
+      interleaved.push(
+        <GapDropZone
+          key={`gap-${i}`}
+          parentId={node.id}
+          index={i}
+          flow={childFlow}
+        />
+      )
+      interleaved.push(
+        <RenderNode
+          key={node.children[i].id}
+          node={node.children[i]}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
+      )
+    }
+    interleaved.push(
+      <GapDropZone
+        key={`gap-end`}
+        parentId={node.id}
+        index={node.children.length}
+        flow={childFlow}
       />
-    ))
+    )
+    renderedChildren = interleaved
   }
 
   // Structural entries (Row, Stack): render as plain HTML with computed

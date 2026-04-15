@@ -62,6 +62,7 @@ export const layoutPrimitives: CatalogEntry[] = [
       },
     ],
     structural: rowStructural,
+    childFlow: 'row',
   },
   {
     name: 'Stack',
@@ -79,5 +80,6 @@ export const layoutPrimitives: CatalogEntry[] = [
       },
     ],
     structural: stackStructural,
+    childFlow: 'column',
   },
 ]

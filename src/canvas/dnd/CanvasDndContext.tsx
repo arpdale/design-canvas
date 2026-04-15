@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom'
 import { useCanvas } from '../state/canvasStoreContext'
 import { materialize } from '../../catalog'
 import { parseDropTarget } from './dropTarget'
+import { gapAwareCollision } from './collision'
 
 interface CanvasDndContextProps {
   children: ReactNode
@@ -69,18 +70,24 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
       if (!node) return
       if (target.kind === 'root') {
         insertAt(null, activeComposition?.roots.length ?? 0, node)
-      } else {
-        // appending to a container
+      } else if (target.kind === 'container') {
+        // Appending to a container.
         insertAt(target.parentId, Number.MAX_SAFE_INTEGER, node)
+      } else {
+        // Gap drop — insert at the specific index.
+        insertAt(target.parentId, target.index, node)
       }
       setSelectedId(node.id)
     } else if (data.kind === 'node') {
       if (target.kind === 'root') {
         moveTo(data.id, null, activeComposition?.roots.length ?? 0)
-      } else {
-        // reject moving into self (composition module also rejects cycles)
+      } else if (target.kind === 'container') {
         if (target.parentId === data.id) return
         moveTo(data.id, target.parentId, Number.MAX_SAFE_INTEGER)
+      } else {
+        // Gap drop — reorder or reparent to a specific index.
+        if (target.parentId === data.id) return
+        moveTo(data.id, target.parentId, target.index)
       }
     }
   }
@@ -88,6 +95,7 @@ export function CanvasDndContext({ children }: CanvasDndContextProps) {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={gapAwareCollision}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragCancel={onDragCancel}

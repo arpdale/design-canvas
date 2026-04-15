@@ -85,6 +85,12 @@ export function removeNode(c: Composition, id: NodeId): Composition {
 /**
  * Moves a node to a new parent and index. If `newParentId` is null, moves
  * to roots. Moving a node into its own subtree is rejected (no-op).
+ *
+ * `newIndex` is the desired post-move index as observed in the *pre-move*
+ * tree (i.e. "insert before the Nth sibling you currently see"). For
+ * same-parent moves this means we adjust by -1 when oldIndex < newIndex,
+ * so dragging rightward to "between sibling 3 and sibling 4" works the
+ * way a user expects.
  */
 export function moveNode(
   c: Composition,
@@ -99,28 +105,50 @@ export function moveNode(
       if (source && findNode([source], newParentId)) return
     }
 
-    // Remove from current location
-    let node: CompositionNode | undefined
+    // Locate and snapshot old parent + index so we can compensate for
+    // same-parent reorder arithmetic.
+    let oldParentId: NodeId | null = null
+    let oldIndex = -1
     const rootIdx = draft.roots.findIndex((n) => n.id === id)
     if (rootIdx >= 0) {
-      node = draft.roots.splice(rootIdx, 1)[0]
+      oldParentId = null
+      oldIndex = rootIdx
     } else {
       const parent = findParent(draft.roots, id)
+      if (!parent) return
+      oldParentId = parent.parent.id
+      oldIndex = parent.index
+    }
+
+    // Remove from current location.
+    let node: CompositionNode | undefined
+    if (oldParentId === null) {
+      node = draft.roots.splice(oldIndex, 1)[0]
+    } else {
+      const parent = findParent(draft.roots, id) // already validated above
       if (!parent) return
       node = parent.parent.children.splice(parent.index, 1)[0]
     }
     if (!node) return
 
-    // Insert at new location
+    // Same-parent correction: after removing `node`, subsequent indices
+    // shifted left by one. If the target index was to the right of the
+    // removed slot, it needs to shift too so the drop lands where the
+    // user visually intended.
+    const sameParent = oldParentId === newParentId
+    const effectiveIndex =
+      sameParent && newIndex > oldIndex ? newIndex - 1 : newIndex
+
+    // Insert at new location.
     const target =
       newParentId === null
         ? draft.roots
         : findNode(draft.roots, newParentId)?.children
     if (!target) {
-      // Target vanished — drop to roots to avoid data loss
+      // Target vanished — drop to roots to avoid data loss.
       draft.roots.push(node)
     } else {
-      const clamped = Math.max(0, Math.min(newIndex, target.length))
+      const clamped = Math.max(0, Math.min(effectiveIndex, target.length))
       target.splice(clamped, 0, node)
     }
     draft.updatedAt = Date.now()

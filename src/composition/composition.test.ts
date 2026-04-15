@@ -159,6 +159,49 @@ describe('composition — moveNode', () => {
     expect(c.roots.map((n) => n.id)).toEqual([b.id, a.id])
   })
 
+  it('same-parent reorder uses pre-move intent indices (rightward)', () => {
+    // Pre-move list: [a, b, c, d, e]. Drag `c` to gap 4 (between d and e).
+    // The user expects: [a, b, d, c, e].
+    let comp = createComposition('X')
+    const a = createNode({ type: 'A' })
+    const b = createNode({ type: 'B' })
+    const c = createNode({ type: 'C' })
+    const d = createNode({ type: 'D' })
+    const e = createNode({ type: 'E' })
+    for (const [i, n] of [a, b, c, d, e].entries()) {
+      comp = insertNode(comp, null, i, n)
+    }
+    comp = moveNode(comp, c.id, null, 4)
+    expect(comp.roots.map((n) => n.id)).toEqual([a.id, b.id, d.id, c.id, e.id])
+  })
+
+  it('same-parent reorder leftward uses the literal index', () => {
+    // Pre-move: [a, b, c, d]. Move `d` to gap 1 → [a, d, b, c].
+    let comp = createComposition('X')
+    const a = createNode({ type: 'A' })
+    const b = createNode({ type: 'B' })
+    const c = createNode({ type: 'C' })
+    const d = createNode({ type: 'D' })
+    for (const [i, n] of [a, b, c, d].entries()) {
+      comp = insertNode(comp, null, i, n)
+    }
+    comp = moveNode(comp, d.id, null, 1)
+    expect(comp.roots.map((n) => n.id)).toEqual([a.id, d.id, b.id, c.id])
+  })
+
+  it('same-parent reorder to current position is a no-op', () => {
+    let comp = createComposition('X')
+    const a = createNode({ type: 'A' })
+    const b = createNode({ type: 'B' })
+    const c = createNode({ type: 'C' })
+    for (const [i, n] of [a, b, c].entries()) {
+      comp = insertNode(comp, null, i, n)
+    }
+    // `b` is at index 1; moving it to gap 1 means "don't move."
+    comp = moveNode(comp, b.id, null, 1)
+    expect(comp.roots.map((n) => n.id)).toEqual([a.id, b.id, c.id])
+  })
+
   it('rejects moving a node into its own subtree', () => {
     let c = createComposition('X')
     const card = createNode({
