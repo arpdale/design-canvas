@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ComponentPanel } from './ComponentPanel'
+import { Sidebar } from './Sidebar'
 import { CanvasSurface } from './CanvasSurface'
 import { InspectorPanel } from './InspectorPanel'
 import { TopBar } from './TopBar'
@@ -30,9 +30,9 @@ function AppShellContent() {
           <div className="flex flex-1 min-h-0">
             <aside
               data-testid="panel-components"
-              className="w-64 shrink-0 border-r border-neutral-200 bg-white overflow-y-auto"
+              className="w-64 shrink-0 border-r border-neutral-200 bg-white overflow-hidden"
             >
-              <ComponentPanel />
+              <Sidebar />
             </aside>
             <main
               data-testid="panel-canvas"
