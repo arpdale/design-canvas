@@ -110,7 +110,7 @@ The architectural question is: **what does the designer actually manipulate, and
 | AI alignment (v0.5) | Good | Good | **Best** |
 | Stakeholder preview (v0.5) | Okay | **Best** | Good |
 | Future multi-target (v1.0+) | Hard | Medium | **Easy** |
-| Risk of architectural rewrite later | Medium | Low | Lowest |
+| Risk of architectural rewrite later | Medium *(conditional — see §5)* | Low | Lowest |
 
 ---
 
@@ -130,27 +130,38 @@ Rationale:
 
 ---
 
-## 5. Accepted Tradeoffs
+## 5. Load-Bearing Architectural Constraint
 
-- Canvas and user composition share a React runtime. We accept potential CSS/JS bleed and will handle it with error boundaries and scoped styles.
-- Tier 3 stateful components are deferred. When they return in v0.5, we may need to revisit this decision.
-- Moving to Model C later is possible but non-trivial. We are explicitly choosing to defer that migration.
+**Composition state must remain cleanly separable from React rendering at all times.**
+
+This is the single mitigation that keeps Model A from becoming a dead end. The natural gravity of Model A is entanglement — putting React refs, event handlers, or render-derived data inside composition state "just for now." If that discipline slips during implementation:
+
+- The state object stops being portable data and becomes React-coupled.
+- The Model C migration cost jumps from medium to high.
+- Export correctness becomes dependent on render-time behavior rather than state alone.
+
+**Enforcement rule (to be carried into Planning):** composition state must be JSON-serializable at all times. No function references, no DOM nodes, no React elements, no refs. If it can't be `JSON.stringify`'d and `JSON.parse`'d round-trip without loss, it doesn't belong in composition state.
+
+The "Medium" rewrite-risk rating in §3 is **conditional on this constraint holding.** If it slips, the rating becomes High.
 
 ---
 
-## 6. Open Questions Before Planning
+## 6. Accepted Tradeoffs
 
-1. **Is Model A acceptable as the MVP architecture, with Model C as the stated long-term target?** If not, which model?
-2. **Error-boundary depth:** Should every rendered DS component be wrapped individually, or just the canvas root? (Affects "one broken component breaks the screen" UX.)
-3. **AI evolvability weight:** How much should v0.5 AI readiness influence the MVP architecture? If the answer is "a lot," Model C gets stronger; Model A gets weaker.
+- Canvas and user composition share a React runtime. We accept potential CSS/JS bleed and handle it with **per-component error boundaries** (every rendered DS component wrapped individually) plus scoped styles. One broken component shows an error state; the rest of the canvas keeps working.
+- Tier 3 stateful components are deferred. When they return in v0.5, we may revisit this decision.
+- Moving to Model C later is possible but conditional on §5 being honored.
 
 ---
 
-## 7. Exit Criteria
+## 7. Resolved Decisions
 
-This Approach is complete when:
-- One model is chosen
-- The three open questions are resolved
-- Tradeoffs are explicitly accepted
+1. **Architecture:** Model A for MVP, with Model C as the stated long-term target (v1.0).
+2. **Error boundary depth:** Every rendered DS component wrapped individually. Performance cost is negligible at POC scale; a full-canvas crash during a demo is the worst possible outcome.
+3. **AI evolvability weight:** **Low** for MVP. The whole point of resequencing AI to v0.5 was to validate manual composition first. Model A is sufficient for v0.5 AI — the AI generates composition state the same way a drag-drop action would. Model C's AI advantage only materializes at v1.0 scale.
 
-Once locked, Planning produces the task breakdown, branch sequence, dependency list, and schemas. None of that belongs here.
+---
+
+## 8. Next: Planning
+
+Approach is locked. Planning produces the task breakdown, branch sequence, dependency list, and schemas. That belongs in a separate doc — see `docs/planning/plan.md`.
