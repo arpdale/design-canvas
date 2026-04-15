@@ -38,23 +38,24 @@ async function dragToGap(
   await page.mouse.move(sx, sy)
   await page.mouse.down()
   // Move past the 4px activation distance in multiple steps so dnd-kit
-  // enters "active" state and React renders the gap drop zones.
-  await page.mouse.move(sx + 20, sy + 20, { steps: 10 })
-  // Give the React render pass from useDndContext state change a chance.
-  await page.waitForTimeout(80)
+  // enters "active" state and React renders the gap drop zones. CI
+  // (Linux, parallel workers) is slower than desktop, so we give the
+  // React commit a generous window.
+  await page.mouse.move(sx + 30, sy + 30, { steps: 15 })
+  await page.waitForTimeout(250)
 
   const gap = page.getByTestId(gapTestId)
-  await gap.waitFor({ state: 'attached', timeout: 5000 })
+  await gap.waitFor({ state: 'attached', timeout: 10_000 })
   const gapBox = await gap.boundingBox()
   if (!gapBox) throw new Error(`gap ${gapTestId} not visible during drag`)
   const gx = gapBox.x + gapBox.width / 2
   const gy = gapBox.y + gapBox.height / 2
 
-  await page.mouse.move(gx, gy, { steps: 15 })
-  await page.waitForTimeout(30)
+  await page.mouse.move(gx, gy, { steps: 20 })
+  await page.waitForTimeout(80)
   await page.mouse.up()
   await page.mouse.move(0, 0)
-  await page.waitForTimeout(80)
+  await page.waitForTimeout(150)
 }
 
 async function startFresh(page: Page) {
