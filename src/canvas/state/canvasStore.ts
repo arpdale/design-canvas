@@ -4,8 +4,10 @@ import {
   insertNode,
   moveNode,
   removeNode,
+  updateProp,
   type Composition,
   type CompositionNode,
+  type JsonValue,
   type NodeId,
 } from '../../composition'
 
@@ -28,6 +30,8 @@ export interface CanvasState {
   insertAt: (parentId: NodeId | null, index: number, node: CompositionNode) => void
   /** Move an existing node to a new parent/index. */
   moveTo: (id: NodeId, parentId: NodeId | null, index: number) => void
+  /** Update a single prop on a node. Pass undefined to delete the prop. */
+  updateProp: (id: NodeId, propName: string, value: JsonValue | undefined) => void
   /** Remove a node from the tree. Clears selection if the node was selected. */
   remove: (id: NodeId) => void
 }
@@ -57,6 +61,13 @@ export function useCanvasStore(initial?: Composition): CanvasState {
     setSelectedId((prev) => (prev === id ? null : prev))
   }, [])
 
+  const setProp = useCallback(
+    (id: NodeId, propName: string, value: JsonValue | undefined) => {
+      setComposition((c) => updateProp(c, id, propName, value))
+    },
+    []
+  )
+
   return useMemo(
     () => ({
       composition,
@@ -65,8 +76,9 @@ export function useCanvasStore(initial?: Composition): CanvasState {
       setSelectedId,
       insertAt,
       moveTo,
+      updateProp: setProp,
       remove,
     }),
-    [composition, selectedId, insertAt, moveTo, remove]
+    [composition, selectedId, insertAt, moveTo, setProp, remove]
   )
 }
