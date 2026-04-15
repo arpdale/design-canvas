@@ -20,16 +20,16 @@ export function Sidebar() {
         className="shrink-0 flex items-center gap-1 p-2 border-b border-neutral-200 bg-white"
       >
         <TabButton
-          id="components"
-          label="Components"
-          active={tab === 'components'}
-          onClick={() => setTab('components')}
-        />
-        <TabButton
           id="layers"
           label="Layers"
           active={tab === 'layers'}
           onClick={() => setTab('layers')}
+        />
+        <TabButton
+          id="components"
+          label="Components"
+          active={tab === 'components'}
+          onClick={() => setTab('components')}
         />
       </nav>
       <div className="flex-1 overflow-y-auto">
