@@ -38,8 +38,6 @@ export function ComponentTile({ entry }: ComponentTileProps) {
   return (
     <div
       ref={setNodeRef}
-      role="button"
-      tabIndex={0}
       style={style}
       data-testid={`panel-item-${entry.name}`}
       className="group flex flex-col items-stretch gap-1 cursor-grab active:cursor-grabbing focus:outline-none"
