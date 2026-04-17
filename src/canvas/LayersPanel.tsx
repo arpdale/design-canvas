@@ -1,15 +1,26 @@
+import { useState } from 'react'
 import type { CompositionNode } from '../composition'
 import { getEntry } from '../catalog'
 import { useCanvas } from './state/canvasStoreContext'
 
 /**
  * Tree view of the active composition. Each node is clickable — selects
- * it in the canvas (same selectedId state). Shown as an alternative to
- * the Components panel via the left-rail tabs.
+ * it in the canvas. Rows with children get a chevron that toggles
+ * expansion (file-tree style). Expansion state is panel-local.
  */
 export function LayersPanel() {
   const { active, selectedId, setSelectedId } = useCanvas()
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set())
   const roots = active?.roots ?? []
+
+  const toggle = (id: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   if (roots.length === 0) {
     return (
@@ -37,6 +48,8 @@ export function LayersPanel() {
             depth={0}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            collapsed={collapsed}
+            onToggle={toggle}
           />
         ))}
       </ul>
@@ -49,13 +62,23 @@ interface LayerRowProps {
   depth: number
   selectedId: string | null
   onSelect: (id: string) => void
+  collapsed: Set<string>
+  onToggle: (id: string) => void
 }
 
-function LayerRow({ node, depth, selectedId, onSelect }: LayerRowProps) {
+function LayerRow({
+  node,
+  depth,
+  selectedId,
+  onSelect,
+  collapsed,
+  onToggle,
+}: LayerRowProps) {
   const entry = getEntry(node.type)
   const label = entry?.displayName ?? node.type
   const isSelected = selectedId === node.id
   const hasChildren = node.children.length > 0
+  const isCollapsed = collapsed.has(node.id)
 
   return (
     <li>
@@ -67,24 +90,36 @@ function LayerRow({ node, depth, selectedId, onSelect }: LayerRowProps) {
           onSelect(node.id)
         }}
         className={[
-          'w-full text-left text-sm px-2 py-1 rounded-md flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-neutral-400',
+          'w-full text-left text-sm px-2 py-1 rounded-md flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-neutral-400',
           isSelected
             ? 'bg-blue-50 text-blue-900'
             : 'hover:bg-neutral-100 text-neutral-700',
         ].join(' ')}
         style={{ paddingLeft: `${8 + depth * 14}px` }}
       >
-        <span
-          aria-hidden
-          className={`text-[10px] text-neutral-400 w-3 inline-block text-center ${
-            hasChildren ? '' : 'opacity-0'
-          }`}
-        >
-          ▾
-        </span>
+        {hasChildren ? (
+          <span
+            role="button"
+            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+            data-testid={`layer-toggle-${node.id}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle(node.id)
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className={[
+              'w-4 h-4 inline-flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-transform shrink-0',
+              isCollapsed ? '' : 'rotate-90',
+            ].join(' ')}
+          >
+            ▸
+          </span>
+        ) : (
+          <span aria-hidden className="w-4 h-4 shrink-0" />
+        )}
         <span className="truncate">{label}</span>
       </button>
-      {hasChildren ? (
+      {hasChildren && !isCollapsed ? (
         <ul className="flex flex-col gap-0.5 mt-0.5">
           {node.children.map((child) => (
             <LayerRow
@@ -93,6 +128,8 @@ function LayerRow({ node, depth, selectedId, onSelect }: LayerRowProps) {
               depth={depth + 1}
               selectedId={selectedId}
               onSelect={onSelect}
+              collapsed={collapsed}
+              onToggle={onToggle}
             />
           ))}
         </ul>

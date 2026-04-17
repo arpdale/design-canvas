@@ -1,7 +1,9 @@
 import { test, expect, type Page, type Locator } from '@playwright/test'
 
 async function dragFromTo(page: Page, source: Locator, target: Locator) {
+  await source.scrollIntoViewIfNeeded().catch(() => {})
   const srcBox = await source.boundingBox()
+  await target.scrollIntoViewIfNeeded().catch(() => {})
   const tgtBox = await target.boundingBox()
   if (!srcBox || !tgtBox) throw new Error('drag targets not visible')
   const startX = srcBox.x + srcBox.width / 2
@@ -24,7 +26,9 @@ async function dragFromTo(page: Page, source: Locator, target: Locator) {
  * mouse gesture, which CI handles reliably.
  */
 async function dragToGap(page: Page, source: Locator, gapTestId: string) {
+  await source.scrollIntoViewIfNeeded().catch(() => {})
   const srcBox = await source.boundingBox()
+  await page.getByTestId(gapTestId).scrollIntoViewIfNeeded().catch(() => {})
   const gapBox = await page.getByTestId(gapTestId).boundingBox()
   if (!srcBox || !gapBox) throw new Error('source or gap not locatable')
 

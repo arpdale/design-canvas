@@ -30,7 +30,7 @@ function AppShellContent() {
           <div className="flex flex-1 min-h-0">
             <aside
               data-testid="panel-components"
-              className="w-64 shrink-0 border-r border-neutral-200 bg-white overflow-hidden"
+              className="w-72 shrink-0 border-r border-neutral-200 bg-white overflow-hidden"
             >
               <Sidebar />
             </aside>

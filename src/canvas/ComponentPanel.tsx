@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { panelEntries, type CatalogCategory, type CatalogEntry } from '../catalog'
-import { ComponentPanelItem } from './ComponentPanelItem'
+import { ComponentTile } from './ComponentTile'
 
 const CATEGORY_LABEL: Record<CatalogCategory, string> = {
   input: 'Input',
@@ -38,14 +38,11 @@ export function ComponentPanel() {
   return (
     <div className="p-3 flex flex-col gap-4" data-testid="component-panel">
       <div>
-        <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-          Components
-        </h2>
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search"
+          placeholder="Search components"
           data-testid="component-panel-search"
           className="w-full px-2 py-1.5 text-sm border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400"
         />
@@ -65,12 +62,12 @@ export function ComponentPanel() {
             if (!items || items.length === 0) return null
             return (
               <div key={cat} data-testid={`component-panel-group-${cat}`}>
-                <h3 className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5 px-1">
+                <h3 className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2 px-1">
                   {CATEGORY_LABEL[cat]}
                 </h3>
-                <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-2 gap-2">
                   {items.map((entry) => (
-                    <ComponentPanelItem key={entry.name} entry={entry} />
+                    <ComponentTile key={entry.name} entry={entry} />
                   ))}
                 </div>
               </div>

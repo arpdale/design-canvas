@@ -31,7 +31,14 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     data: { kind: 'node', id: node.id, type: node.type },
   })
 
-  const acceptsDrop = entry?.acceptsChildren === true
+  // Strict slot-aware drops: a compound parent (one whose catalog entry
+  // seeds children — Card, Tabs, Accordion, etc.) is *not* a drop target
+  // at its own wrapper level. Drops route into its visible subcomponents
+  // (CardContent, TabsContent, …) whose own acceptsChildren handles the
+  // routing. This prevents structural mistakes like dropping a Field as
+  // a direct child of Card.
+  const isCompound = !!entry?.defaultChildren?.length
+  const acceptsDrop = entry?.acceptsChildren === true && !isCompound
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: dropTargetId({ kind: 'container', parentId: node.id }),
     disabled: !acceptsDrop,
@@ -54,7 +61,11 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
   const wrapperClass = [
     'relative inline-block max-w-full',
     isSelected ? 'outline outline-2 outline-offset-2 outline-blue-500' : '',
-    isOver && acceptsDrop ? 'ring-2 ring-blue-300 bg-blue-50/40' : '',
+    // Dashed accent outline when a drop is in progress over a valid container
+    // — reads as "this is where it'll land."
+    isOver && acceptsDrop
+      ? 'outline-dashed outline-2 outline-offset-2 outline-blue-400 bg-blue-50/40'
+      : '',
     isDragging ? 'opacity-40' : '',
   ]
     .filter(Boolean)
@@ -74,41 +85,55 @@ export function RenderNode({ node, selectedId, onSelect }: RenderNodeProps) {
     )
   }
 
-  // Render children — interleave GapDropZones so users can drop between
-  // siblings (reorder / insert). Gaps are only visible during a drag.
+  // Render children. Non-compound containers interleave GapDropZones so
+  // users can drop between siblings; compound parents (Card, Tabs, …)
+  // skip gaps so random components can't be injected between their DS
+  // structural children (CardHeader / CardContent / CardFooter).
   const childFlow = entry.childFlow ?? 'column'
+  const showGaps = !isCompound
   let renderedChildren: ReactNode = null
   if (entry.textChild) {
     renderedChildren = (node.props.children as string | undefined) ?? ''
   } else if (node.children.length > 0) {
-    const interleaved: ReactNode[] = []
-    for (let i = 0; i < node.children.length; i++) {
-      interleaved.push(
-        <GapDropZone
-          key={`gap-${i}`}
-          parentId={node.id}
-          index={i}
-          flow={childFlow}
-        />
-      )
-      interleaved.push(
+    if (!showGaps) {
+      renderedChildren = node.children.map((child) => (
         <RenderNode
-          key={node.children[i].id}
-          node={node.children[i]}
+          key={child.id}
+          node={child}
           selectedId={selectedId}
           onSelect={onSelect}
         />
+      ))
+    } else {
+      const interleaved: ReactNode[] = []
+      for (let i = 0; i < node.children.length; i++) {
+        interleaved.push(
+          <GapDropZone
+            key={`gap-${i}`}
+            parentId={node.id}
+            index={i}
+            flow={childFlow}
+          />
+        )
+        interleaved.push(
+          <RenderNode
+            key={node.children[i].id}
+            node={node.children[i]}
+            selectedId={selectedId}
+            onSelect={onSelect}
+          />
+        )
+      }
+      interleaved.push(
+        <GapDropZone
+          key={`gap-end`}
+          parentId={node.id}
+          index={node.children.length}
+          flow={childFlow}
+        />
       )
+      renderedChildren = interleaved
     }
-    interleaved.push(
-      <GapDropZone
-        key={`gap-end`}
-        parentId={node.id}
-        index={node.children.length}
-        flow={childFlow}
-      />
-    )
-    renderedChildren = interleaved
   }
 
   // Structural entries (Row, Stack): render as plain HTML with computed

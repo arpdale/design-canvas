@@ -46,7 +46,12 @@ export function CanvasSurface() {
       ref={setNodeRef}
       data-testid="canvas-surface"
       onClick={clearSelectionOnBackground}
-      className="mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col"
+      className={[
+        'mx-auto max-w-3xl min-h-full rounded-lg bg-white p-8 flex flex-col transition-[box-shadow,outline]',
+        isOver
+          ? 'outline-dashed outline-2 outline-offset-[-8px] outline-blue-300'
+          : '',
+      ].join(' ')}
     >
       <GapDropZone parentId={null} index={0} flow="column" />
       {roots.map((node, i) => (
